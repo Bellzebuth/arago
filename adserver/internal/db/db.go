@@ -26,7 +26,7 @@ func InitAdCollection(db *mongo.Database) (*mongo.Collection, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	collection := db.Collection("ads")
+	collection := db.Collection("arago")
 
 	indexModel := mongo.IndexModel{
 		Keys:    bson.D{{Key: "expires_at", Value: 1}},

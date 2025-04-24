@@ -2,9 +2,13 @@ package grpc
 
 import (
 	"context"
+	"fmt"
+	"log"
 	"time"
 
 	pb "github.com/Bellzebuth/arago/adserver/proto/ad/proto"
+	trackerpb "github.com/Bellzebuth/arago/tracker/proto"
+	"google.golang.org/grpc"
 
 	"github.com/Bellzebuth/arago/adserver/models"
 	"go.mongodb.org/mongo-driver/bson"
@@ -14,7 +18,17 @@ import (
 
 type AdServer struct {
 	pb.UnimplementedAdServiceServer
-	AdCollection *mongo.Collection
+	AdCollection  *mongo.Collection
+	TrackerClient trackerpb.TrackerServiceClient
+}
+
+func (s *AdServer) initTrackerClient() error {
+	conn, err := grpc.Dial("tracker:50052", grpc.WithInsecure()) // Assure-toi que le nom du service est correct
+	if err != nil {
+		return fmt.Errorf("failed to connect to tracker service: %v", err)
+	}
+	s.TrackerClient = trackerpb.NewTrackerServiceClient(conn)
+	return nil
 }
 
 func (s *AdServer) CreateAd(ctx context.Context, req *pb.CreateAdRequest) (*pb.CreateAdResponse, error) {
@@ -77,7 +91,15 @@ func (s *AdServer) ServeAd(ctx context.Context, req *pb.ServeAdRequest) (*pb.Ser
 		return nil, err
 	}
 
-	// TODO: send gRPC request to tracker
+	trackReq := &trackerpb.TrackClickRequest{
+		AdId: ad.ID.Hex(),
+		//Count: req.Count(),
+	}
+
+	_, err = s.TrackerClient.TrackClick(ctx, trackReq)
+	if err != nil {
+		log.Printf("Failed to track click: %v", err)
+	}
 
 	return &pb.ServeAdResponse{
 		Url: ad.Url,
