@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package tracker;
+
+option go_package = "github.com/Bellzebuth/arago/tracker/proto/";
+
+message TrackClickRequest {
+  string ad_id = 1;
+  string count = 2;
+}
+
+message TrackClickResponse {
+  bool success = 1;
+}
+
+service TrackerService {
+  rpc TrackClick(TrackClickRequest) returns (TrackClickResponse);
+}
