@@ -1,28 +1,57 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
+	"net"
 	"os"
+	"time"
 
-	"github.com/Bellzebuth/adserver/internal/db"
+	"github.com/Bellzebuth/arago/adserver/internal/db"
+	adgrpc "github.com/Bellzebuth/arago/adserver/internal/grpc"
+	pb "github.com/Bellzebuth/arago/adserver/proto/ad/proto"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 func main() {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
 	mongoURI := os.Getenv("MONGO_URI")
 	if mongoURI == "" {
 		mongoURI = "mongodb://localhost:27017"
 	}
 
-	client, err := db.Connect(mongoURI)
+	client, err := db.Connect(ctx, mongoURI)
 	if err != nil {
-		log.Fatalf("Erreur connexion MongoDB: %v", err)
+		log.Fatalf("Failed to connect to MongoDB: %v", err)
 	}
-	defer client.Disconnect(nil)
+	defer client.Disconnect(ctx)
 
 	adCollection, err := db.InitAdCollection(client.Database("adserver"))
 	if err != nil {
-		log.Fatalf("Erreur initialisation collection ads: %v", err)
+		log.Fatalf("Failed to initialize db: %v", err)
 	}
 
-	log.Println("Connexion MongoDB réussie et collection ads initialisée:", adCollection.Name())
+	s := adgrpc.AdServer{
+		AdCollection: adCollection,
+	}
+
+	grpcServer := grpc.NewServer()
+	pb.RegisterAdServiceServer(grpcServer, &s)
+
+	reflection.Register(grpcServer)
+
+	lis, err := net.Listen("tcp", ":50051")
+	if err != nil {
+		log.Fatalf("Failed to listen: %v", err)
+	}
+
+	fmt.Println("AdServer is running on port :50051...")
+	if err := grpcServer.Serve(lis); err != nil {
+		log.Fatalf("Failed to serve: %v", err)
+	}
 }

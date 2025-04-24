@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package ad;
+
+option go_package = "adserver/proto/ad";
+
+message Ad {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  string url = 4;
+}
+
+message CreateAdRequest {
+  string title = 1;
+  string description = 2;
+  string url = 3;
+}
+
+message CreateAdResponse {
+  Ad ad = 1;
+}
+
+message GetAdRequest {
+  string id = 1;
+}
+
+message GetAdResponse {
+  Ad ad = 1;
+}
+
+message ServeAdRequest {
+  string id = 1;
+}
+
+message ServeAdResponse {
+  string url = 1;
+}
+
+service AdService {
+  rpc CreateAd(CreateAdRequest) returns (CreateAdResponse);
+  rpc GetAd(GetAdRequest) returns (GetAdResponse);
+  rpc ServeAd(ServeAdRequest) returns (ServeAdResponse);
+}

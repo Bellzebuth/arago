@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  adserver:
+    build: ./adserver
+    ports:
+      - "50051:50051"
+    depends_on:
+      - mongo
+    environment:
+      - MONGO_URI=mongodb://mongo:27017
+    networks:
+      - backend
+
+  mongo:
+    image: mongo:6
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - backend
+
+networks:
+  backend:
+
+volumes:
+  mongo_data:
