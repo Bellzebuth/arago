@@ -59,7 +59,7 @@ grpcurl -plaintext -d '{
 
 ```bash
 grpcurl -plaintext -d '{
-  "adId": "REPLACE_WITH_AD_ID"
+  "id": "REPLACE_WITH_AD_ID"
 }' localhost:50051 ad.AdService/ServeAd
 ```
 
