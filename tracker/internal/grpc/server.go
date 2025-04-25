@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"log"
+	"time"
 
 	"github.com/Bellzebuth/arago/tracker/models"
 	pb "github.com/Bellzebuth/arago/tracker/proto"
@@ -22,8 +23,8 @@ func NewTrackerServer(collection *mongo.Collection) *TrackerServer {
 
 func (s *TrackerServer) TrackClick(ctx context.Context, req *pb.TrackClickRequest) (*pb.TrackClickResponse, error) {
 	click := models.Click{
-		AdID: req.GetAdId(),
-		//Count: req.Count(),
+		AdID:      req.GetAdId(),
+		Timestamp: time.Now(),
 	}
 
 	_, err := s.ClickCollection.InsertOne(ctx, click)

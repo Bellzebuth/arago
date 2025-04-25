@@ -2,13 +2,17 @@ package grpc
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"time"
 
+	"github.com/Bellzebuth/arago/adserver/internal/cache"
 	pb "github.com/Bellzebuth/arago/adserver/proto/ad/proto"
 	trackerpb "github.com/Bellzebuth/arago/tracker/proto"
+	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/Bellzebuth/arago/adserver/models"
 	"go.mongodb.org/mongo-driver/bson"
@@ -20,14 +24,17 @@ type AdServer struct {
 	pb.UnimplementedAdServiceServer
 	AdCollection  *mongo.Collection
 	TrackerClient trackerpb.TrackerServiceClient
+	RedisClient   *redis.Client
 }
 
-func (s *AdServer) initTrackerClient() error {
-	conn, err := grpc.Dial("tracker:50052", grpc.WithInsecure()) // Assure-toi que le nom du service est correct
+func (s *AdServer) Init() error {
+	conn, err := grpc.NewClient("localhost:50052", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return fmt.Errorf("failed to connect to tracker service: %v", err)
 	}
 	s.TrackerClient = trackerpb.NewTrackerServiceClient(conn)
+
+	s.RedisClient = cache.NewRedisClient("dragonfly:6379")
 	return nil
 }
 
@@ -58,6 +65,18 @@ func (s *AdServer) CreateAd(ctx context.Context, req *pb.CreateAdRequest) (*pb.C
 }
 
 func (s *AdServer) GetAd(ctx context.Context, req *pb.GetAdRequest) (*pb.GetAdResponse, error) {
+	cacheKey := fmt.Sprintf("ad:%s", req.GetId())
+
+	// Try to get ad from cache
+	cached, err := s.RedisClient.Get(ctx, cacheKey).Result()
+	if err == nil {
+		var cachedAd pb.Ad
+		if err := json.Unmarshal([]byte(cached), &cachedAd); err == nil {
+			return &pb.GetAdResponse{Ad: &cachedAd}, nil
+		}
+	}
+
+	// If not in cache, query MongoDB
 	objID, err := primitive.ObjectIDFromHex(req.GetId())
 	if err != nil {
 		return nil, err
@@ -69,14 +88,20 @@ func (s *AdServer) GetAd(ctx context.Context, req *pb.GetAdRequest) (*pb.GetAdRe
 		return nil, err
 	}
 
-	return &pb.GetAdResponse{
-		Ad: &pb.Ad{
-			Id:          ad.ID.Hex(),
-			Title:       ad.Title,
-			Description: ad.Description,
-			Url:         ad.Url,
-		},
-	}, nil
+	adResponse := &pb.Ad{
+		Id:          ad.ID.Hex(),
+		Title:       ad.Title,
+		Description: ad.Description,
+		Url:         ad.Url,
+	}
+
+	// Cache the result
+	data, err := json.Marshal(adResponse)
+	if err == nil {
+		s.RedisClient.Set(ctx, cacheKey, data, 10*time.Minute) // Set TTL as needed
+	}
+
+	return &pb.GetAdResponse{Ad: adResponse}, nil
 }
 
 func (s *AdServer) ServeAd(ctx context.Context, req *pb.ServeAdRequest) (*pb.ServeAdResponse, error) {
@@ -93,7 +118,6 @@ func (s *AdServer) ServeAd(ctx context.Context, req *pb.ServeAdRequest) (*pb.Ser
 
 	trackReq := &trackerpb.TrackClickRequest{
 		AdId: ad.ID.Hex(),
-		//Count: req.Count(),
 	}
 
 	_, err = s.TrackerClient.TrackClick(ctx, trackReq)

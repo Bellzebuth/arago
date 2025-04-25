@@ -31,13 +31,17 @@ func main() {
 	}
 	defer client.Disconnect(ctx)
 
-	adCollection, err := db.InitAdCollection(client.Database("adserver"))
+	adCollection, err := db.InitAdCollection(client.Database("arago"))
 	if err != nil {
 		log.Fatalf("Failed to initialize db: %v", err)
 	}
 
 	s := adgrpc.AdServer{
 		AdCollection: adCollection,
+	}
+
+	if err := s.Init(); err != nil {
+		log.Fatalf("Failed to initialize TrackerClient: %v", err)
 	}
 
 	grpcServer := grpc.NewServer()
