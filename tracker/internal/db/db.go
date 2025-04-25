@@ -14,7 +14,7 @@ func InitMongo(ctx context.Context, uri string) (*mongo.Collection, error) {
 		dbName = "arago"
 	}
 
-	collectionName := os.Getenv("TARGET_COLLECTION")
+	collectionName := os.Getenv("TRACKER_COLLECTION")
 	if collectionName == "" {
 		collectionName = "tracker"
 	}

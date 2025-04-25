@@ -12,7 +12,8 @@ services:
     environment:
       - MONGO_URI=${MONGO_URI}
       - PORT=${ADSERVER_PORT}
-      - COLLECTION=${COLLECTION}
+      - AD_COLLECTION=${AD_COLLECTION}
+      - TRACKER_COLLECTION=${TRACKER_COLLECTION}
     networks:
       - backend
 
@@ -25,6 +26,8 @@ services:
       - mongo
     environment:
       - MONGO_URI=${MONGO_URI}
+      - PORT=${ADSERVER_PORT}
+      - TRACKER_COLLECTION=${TRACKER_COLLECTION}
     networks:
       - backend
 

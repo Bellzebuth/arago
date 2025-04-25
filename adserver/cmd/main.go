@@ -52,7 +52,7 @@ func main() {
 
 	reflection.Register(grpcServer) // use to test with grpcurl
 
-	port := os.Getenv("PORT")
+	port := os.Getenv("ADSERVER_PORT")
 	if port == "" {
 		port = "50051"
 	}

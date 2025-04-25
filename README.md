@@ -26,7 +26,9 @@
 git clone https://github.com/Bellzebuth/arago.git
 cd arago
 
-make proto   # Generate protobuf files
+# You must create your own .env, please read the section Environment.
+
+make protoc   # Generate protobuf files
 make build   # Build Docker images
 make up      # Start containers
 ```
