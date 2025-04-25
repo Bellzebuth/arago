@@ -7,8 +7,3 @@ protoc:
 		--go-grpc_opt=paths=source_relative \
 		$(PROTO_DIR)/tracker.proto
 
-build:
-	go build -o tracker ./cmd/main.go
-
-run:
-	go run ./cmd/main.go

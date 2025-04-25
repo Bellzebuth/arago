@@ -25,36 +25,44 @@ func main() {
 		mongoURI = "mongodb://localhost:27017"
 	}
 
+	dbName := os.Getenv("DB_NAME")
+	if dbName == "" {
+		dbName = "arago"
+	}
+
 	client, err := db.Connect(ctx, mongoURI)
 	if err != nil {
 		log.Fatalf("Failed to connect to MongoDB: %v", err)
 	}
 	defer client.Disconnect(ctx)
 
-	adCollection, err := db.InitAdCollection(client.Database("arago"))
+	adCollection, err := db.InitAdCollection(client.Database(dbName))
 	if err != nil {
 		log.Fatalf("Failed to initialize db: %v", err)
 	}
 
-	s := adgrpc.AdServer{
-		AdCollection: adCollection,
-	}
-
-	if err := s.Init(); err != nil {
-		log.Fatalf("Failed to initialize TrackerClient: %v", err)
+	adServer := adgrpc.AdServer{}
+	err = adServer.Init(adCollection)
+	if err != nil {
+		log.Fatalf("Failed to initialize server: %v", err)
 	}
 
 	grpcServer := grpc.NewServer()
-	pb.RegisterAdServiceServer(grpcServer, &s)
+	pb.RegisterAdServiceServer(grpcServer, &adServer)
 
-	reflection.Register(grpcServer)
+	reflection.Register(grpcServer) // use to test with grpcurl
 
-	lis, err := net.Listen("tcp", ":50051")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "50051"
+	}
+
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", port))
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	fmt.Println("AdServer is running on port :50051...")
+	fmt.Println(fmt.Sprintf("AdServer is running on port :%s...", port))
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalf("Failed to serve: %v", err)
 	}

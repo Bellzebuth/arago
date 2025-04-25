@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"os"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -26,7 +27,12 @@ func InitAdCollection(db *mongo.Database) (*mongo.Collection, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	collection := db.Collection("arago")
+	collectionName := os.Getenv("AD_COLLECTION")
+	if collectionName == "" {
+		collectionName = "ads"
+	}
+
+	collection := db.Collection(collectionName)
 
 	indexModel := mongo.IndexModel{
 		Keys:    bson.D{{Key: "expires_at", Value: 1}},

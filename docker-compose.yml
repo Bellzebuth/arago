@@ -1,27 +1,30 @@
 version: "3.8"
 
 services:
-  tracker:
-    build:
-      context: ./tracker
-    ports:
-      - "50052:50052"
-    depends_on:
-      - mongo
-    environment:
-      - MONGO_URI=mongodb://mongo:27017
-    networks:
-      - backend
   adserver:
     build:
       context: .
       dockerfile: ./adserver/Dockerfile
     ports:
-      - "50051:50051"
+      - "${ADSERVER_PORT}:${ADSERVER_PORT}"
     depends_on:
       - mongo
     environment:
-      - MONGO_URI=mongodb://mongo:27017
+      - MONGO_URI=${MONGO_URI}
+      - PORT=${ADSERVER_PORT}
+      - COLLECTION=${COLLECTION}
+    networks:
+      - backend
+
+  tracker:
+    build:
+      context: ./tracker
+    ports:
+      - "${TRACKER_PORT}:${TRACKER_PORT}"
+    depends_on:
+      - mongo
+    environment:
+      - MONGO_URI=${MONGO_URI}
     networks:
       - backend
 

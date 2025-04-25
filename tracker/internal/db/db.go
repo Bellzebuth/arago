@@ -2,15 +2,22 @@ package db
 
 import (
 	"context"
-	"time"
+	"os"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func InitMongo(uri, dbName, collectionName string) (*mongo.Collection, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+func InitMongo(ctx context.Context, uri string) (*mongo.Collection, error) {
+	dbName := os.Getenv("DB_NAME")
+	if dbName == "" {
+		dbName = "arago"
+	}
+
+	collectionName := os.Getenv("TARGET_COLLECTION")
+	if collectionName == "" {
+		collectionName = "tracker"
+	}
 
 	clientOptions := options.Client().ApplyURI(uri)
 	client, err := mongo.Connect(ctx, clientOptions)

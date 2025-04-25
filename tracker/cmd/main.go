@@ -1,9 +1,12 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"net"
 	"os"
+	"time"
 
 	"github.com/Bellzebuth/arago/tracker/internal/db"
 	mygrpc "github.com/Bellzebuth/arago/tracker/internal/grpc"
@@ -13,17 +16,25 @@ import (
 )
 
 func main() {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
 	mongoURI := os.Getenv("MONGO_URI")
 	if mongoURI == "" {
 		mongoURI = "mongodb://localhost:27017"
 	}
 
-	collection, err := db.InitMongo(mongoURI, "arago", "clicks")
+	collection, err := db.InitMongo(ctx, mongoURI)
 	if err != nil {
 		log.Fatalf("Failed to connect to MongoDB: %v", err)
 	}
 
-	lis, err := net.Listen("tcp", ":50052")
+	port := os.Getenv("TRACKER_PORT")
+	if port == "" {
+		port = "50052"
+	}
+
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", port))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
@@ -35,7 +46,7 @@ func main() {
 
 	reflection.Register(grpcServer)
 
-	log.Println("Tracker service is running on port 50052...")
+	fmt.Println(fmt.Sprintf("AdServer is running on port :%s...", port))
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}

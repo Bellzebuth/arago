@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/Bellzebuth/arago/adserver/internal/cache"
@@ -27,14 +28,25 @@ type AdServer struct {
 	RedisClient   *redis.Client
 }
 
-func (s *AdServer) Init() error {
-	conn, err := grpc.NewClient("tracker:50052", grpc.WithTransportCredentials(insecure.NewCredentials()))
+func (s *AdServer) Init(collection *mongo.Collection) error {
+	trackerPort := os.Getenv("TRACKER_PORT")
+	if trackerPort == "" {
+		trackerPort = "50052"
+	}
+
+	conn, err := grpc.NewClient(fmt.Sprintf("tracker:%s", trackerPort), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return fmt.Errorf("failed to connect to tracker service: %v", err)
 	}
+
+	s.AdCollection = collection
 	s.TrackerClient = trackerpb.NewTrackerServiceClient(conn)
 
-	s.RedisClient = cache.NewRedisClient("dragonfly:6379")
+	dragonflyPort := os.Getenv("DRAGONFLY_PORT")
+	if dragonflyPort == "" {
+		dragonflyPort = "6379"
+	}
+	s.RedisClient = cache.NewRedisClient(fmt.Sprintf("dragonfly:%s", dragonflyPort))
 	return nil
 }
 
@@ -53,6 +65,11 @@ func (s *AdServer) CreateAd(ctx context.Context, req *pb.CreateAdRequest) (*pb.C
 	}
 
 	ad.ID = result.InsertedID.(primitive.ObjectID)
+
+	err = ad.IsValid()
+	if err != nil {
+		return nil, err
+	}
 
 	return &pb.CreateAdResponse{
 		Ad: &pb.Ad{
@@ -120,13 +137,10 @@ func (s *AdServer) ServeAd(ctx context.Context, req *pb.ServeAdRequest) (*pb.Ser
 		AdId: ad.ID.Hex(),
 	}
 
-	fmt.Println("track click ...")
 	_, err = s.TrackerClient.TrackClick(ctx, trackReq)
 	if err != nil {
 		log.Printf("Failed to track click: %v", err)
 	}
-
-	fmt.Println("track click no error")
 
 	return &pb.ServeAdResponse{
 		Url: ad.Url,
