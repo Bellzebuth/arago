@@ -28,7 +28,7 @@ type AdServer struct {
 }
 
 func (s *AdServer) Init() error {
-	conn, err := grpc.NewClient("localhost:50052", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient("tracker:50052", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return fmt.Errorf("failed to connect to tracker service: %v", err)
 	}
@@ -120,10 +120,13 @@ func (s *AdServer) ServeAd(ctx context.Context, req *pb.ServeAdRequest) (*pb.Ser
 		AdId: ad.ID.Hex(),
 	}
 
+	fmt.Println("track click ...")
 	_, err = s.TrackerClient.TrackClick(ctx, trackReq)
 	if err != nil {
 		log.Printf("Failed to track click: %v", err)
 	}
+
+	fmt.Println("track click no error")
 
 	return &pb.ServeAdResponse{
 		Url: ad.Url,

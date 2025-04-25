@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -27,11 +28,13 @@ func (s *TrackerServer) TrackClick(ctx context.Context, req *pb.TrackClickReques
 		Timestamp: time.Now(),
 	}
 
+	fmt.Println("LAAAAAAAAAAAAAAAAAAAA")
 	_, err := s.ClickCollection.InsertOne(ctx, click)
 	if err != nil {
 		log.Printf("Failed to insert click: %v", err)
 		return &pb.TrackClickResponse{Success: false}, err
 	}
+	fmt.Println("LOOOOOOOOOOOOOOOOO")
 
 	return &pb.TrackClickResponse{Success: true}, nil
 }

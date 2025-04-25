@@ -4,16 +4,18 @@ services:
   tracker:
     build:
       context: ./tracker
+    ports:
+      - "50052:50052"
     depends_on:
       - mongo
     environment:
       - MONGO_URI=mongodb://mongo:27017
-    ports:
-      - "50052:50052"
     networks:
       - backend
   adserver:
-    build: ./adserver
+    build:
+      context: .
+      dockerfile: ./adserver/Dockerfile
     ports:
       - "50051:50051"
     depends_on:
@@ -22,8 +24,6 @@ services:
       - MONGO_URI=mongodb://mongo:27017
     networks:
       - backend
-    volumes:
-      - ./tracker:/app/tracker
 
   dragonfly:
     image: docker.dragonflydb.io/dragonflydb/dragonfly
