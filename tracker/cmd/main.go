@@ -10,7 +10,7 @@ import (
 
 	"github.com/Bellzebuth/arago/tracker/internal/db"
 	mygrpc "github.com/Bellzebuth/arago/tracker/internal/grpc"
-	pb "github.com/Bellzebuth/arago/tracker/proto"
+	pb "github.com/Bellzebuth/arago/tracker/proto/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )

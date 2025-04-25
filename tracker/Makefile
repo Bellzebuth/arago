@@ -1,5 +1,5 @@
-PROTO_DIR=proto/tracker
-OUT_DIR=proto/tracker
+PROTO_DIR=proto
+OUT_DIR=proto
 
 protoc:
 	protoc --go_out=$(OUT_DIR) --go-grpc_out=$(OUT_DIR) \

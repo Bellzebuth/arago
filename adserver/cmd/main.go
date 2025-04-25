@@ -10,7 +10,7 @@ import (
 
 	"github.com/Bellzebuth/arago/adserver/internal/db"
 	adgrpc "github.com/Bellzebuth/arago/adserver/internal/grpc"
-	pb "github.com/Bellzebuth/arago/adserver/proto/ad/proto"
+	pb "github.com/Bellzebuth/arago/adserver/proto/proto"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"

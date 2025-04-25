@@ -17,7 +17,7 @@
 ### Prerequisites
 
 - Docker & Docker Compose
-- `make` (optional, for convenience)
+- `make`
 
 ### Setup
 
@@ -26,13 +26,6 @@
 git clone https://github.com/Bellzebuth/arago.git
 cd arago
 
-# Build and start all services
-docker-compose up --build
-```
-
-Or using Make:
-
-```bash
 make proto   # Generate protobuf files
 make build   # Build Docker images
 make up      # Start containers
@@ -65,7 +58,7 @@ grpcurl -plaintext -d '{
 ```bash
 grpcurl -plaintext -d '{
   "adId": "REPLACE_WITH_AD_ID"
-}' localhost:50051 ad.AdService/ClickAd
+}' localhost:50051 ad.AdService/ServeAd
 ```
 
 ## Environment

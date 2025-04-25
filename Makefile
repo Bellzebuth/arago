@@ -1,8 +1,8 @@
 .PHONY: proto build up down
 
-proto:
-	$(MAKE) -C adserver proto
-	$(MAKE) -C tracker proto
+protoc:
+	$(MAKE) -C adserver protoc
+	$(MAKE) -C tracker protoc
 
 build:
 	docker-compose build

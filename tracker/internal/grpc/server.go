@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/Bellzebuth/arago/tracker/models"
-	pb "github.com/Bellzebuth/arago/tracker/proto"
+	pb "github.com/Bellzebuth/arago/tracker/proto/proto"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 

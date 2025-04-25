@@ -1,7 +1,8 @@
-.PHONY: build run proto up down logs
+PROTO_DIR=proto
+OUT_DIR=proto
 
-proto:
-	protoc --go_out=proto/ad --go-grpc_out=proto/ad \
+protoc:
+	protoc --go_out=$(OUT_DIR) --go-grpc_out=$(OUT_DIR) \
 		--go_opt=paths=source_relative --go-grpc_opt=paths=source_relative \
-		proto/ad/ad.proto
+		$(PROTO_DIR)/ad.proto
 

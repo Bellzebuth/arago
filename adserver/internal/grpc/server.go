@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/Bellzebuth/arago/adserver/internal/cache"
-	pb "github.com/Bellzebuth/arago/adserver/proto/ad/proto"
-	trackerpb "github.com/Bellzebuth/arago/tracker/proto"
+	pb "github.com/Bellzebuth/arago/adserver/proto/proto"
+	trackerpb "github.com/Bellzebuth/arago/tracker/proto/proto"
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
